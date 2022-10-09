@@ -1,0 +1,15 @@
+streamlit
+pandas
+numpy
+matplotlib
+scikit-learn
+seaborn
+torch
+torchvision
+psutil
+opencv-python
+face_recognition
+refurb
+beautifulsoup4
+py3-pinterest
+notion-client
