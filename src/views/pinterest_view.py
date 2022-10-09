@@ -58,38 +58,30 @@ class PinterestDemoView:
             num_pins: int = st.slider('Num of Images', 0, 300, 100)
             submitted = st.form_submit_button(label='Search')
 
-        logger.info(f'{pin_id=}, {board_id=}, {num_pins=}')
-
         if (0 != len(pin_id) or 0 != len(board_id)) and num_pins is not None and submitted:
             with st.spinner('Wait for it...'):
                 if 0 != len(pin_id):
                     pinterest_service.get_board_images_from_pin_id(pin_id=pin_id,
                                                                    page_size=num_pins)
+                    self._download(data=pinterest_service.image_info_list, label=pin_id)
                 elif 0 != len(board_id):
                     pinterest_service.get_board_feed_orig_images(board_id=board_id,
                                                                  page_size=num_pins)
-        if 0 != len(pinterest_service.image_info_list):
-            image_list: list = pinterest_service.image_info_list
-            self._download(data=image_list)
-            with st.expander(label='Show Pins ID', expanded=False):
-                st.table(pinterest_service.pin_id_list)
-            with st.expander(label='Show Pins Link', expanded=False):
-                st.table(image_list)
-            with st.expander(label='Show Pins', expanded=True):
-                num = 3
-                col = st.columns(num)
-                if 0 != len(image_list):
-                    for idx, img_link in enumerate(image_list):
-                        with col[idx % num]:
-                            st.image(image_list[idx], use_column_width=True)
+                    self._download(data=pinterest_service.image_info_list, label=board_id)
+                with st.expander(label='Show Pins ID', expanded=False):
+                    st.table(pinterest_service.pin_id_list)
+                with st.expander(label='Show Pins Link', expanded=False):
+                    st.table(pinterest_service.image_info_list)
+                with st.expander(label='Show Pins', expanded=True):
+                    num = 3
+                    col = st.columns(num)
+                    if 0 != len(pinterest_service.image_info_list):
+                        for idx, img_link in enumerate(pinterest_service.image_info_list):
+                            with col[idx % num]:
+                                st.image(pinterest_service.image_info_list[idx], use_column_width=True)
 
-    def _download(self, data):
-        with st.form(key='pinterest_csv_download_service_form'):
-            st.write('Download CSV Form')
-            label = st.text_input(label='Set Label: Add Column')
-            if isinstance(data, list):
-                data = pd.DataFrame({'filelist': data,
-                                     'label': [label for _ in range(len(data))]}).to_csv(index=False)
-            submitted = st.form_submit_button(label='Setup')
-        if submitted:
-            st.download_button(label='Download csv', data=data, file_name='filelist.csv', mime='text/csv')
+    def _download(self, data, label: str):
+        if isinstance(data, list):
+            data = pd.DataFrame({'filelist': data,
+                                 'label': [label for _ in range(len(data))]}).to_csv(index=False)
+        st.download_button(label='Download csv', data=data, file_name='filelist.csv', mime='text/csv')
