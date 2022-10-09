@@ -1,5 +1,5 @@
 ---
-title: streamlit-demo
+title: streamlit-image-services
 python_version: 3.10.7
 sdk: streamlit
 sdk_version: 1.10.0
