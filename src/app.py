@@ -17,7 +17,7 @@ class APP:
         st.session_state.is_authorization = False
 
     def __init__(self):
-        if self.env not in ['prod', 'develop']:
+        if self.env not in ('prod', 'develop'):
             raise ValueError
         st.set_page_config(
             page_title='tn1994/streamlit-image-services',
