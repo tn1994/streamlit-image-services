@@ -4,40 +4,17 @@ import traceback
 
 import streamlit as st
 
-from .pinterest_view import PinterestView, PinterestDemoView
+from ..services.image_service import ImageService
+from ..services.image_service import SearchImageService
+from ..services.image_service import DownloadImageService
+from ..views.pinterest_view import PinterestView, PinterestDemoView
+from ..services.csv_service import CsvService
+from ..torch_application.torch_view import TorchView
+from ..services.notion_service import NotionService
+from ..views.notion_pinterest_view import NotionPinterestView
+from ..services.version_service import VersionService
 
 logger = logging.getLogger(__name__)
-
-try:
-    from ..services.image_service import ImageService
-    from ..services.image_service import SearchImageService
-    from ..services.image_service import DownloadImageService
-    from ..services.image_services.pinterest_service import PinterestService
-
-    from ..services.csv_service import CsvService
-    from ..services.csv_service import get_classification_buffer_data
-    from ..services.csv_service import get_regression_buffer_data
-
-    from ..services.notion_service import NotionService
-    from .notion_pinterest_view import NotionPinterestView
-    from ..services.version_service import VersionService
-except ImportError:
-    logger.info('check: ImportError')  # todo: fix import error
-    from services.image_service import ImageService
-    from services.image_service import SearchImageService
-    from services.image_service import DownloadImageService
-
-    from services.image_services.pinterest_service import PinterestService
-
-    from services.csv_service import CsvService
-    from services.csv_service import get_classification_buffer_data
-    from services.csv_service import get_regression_buffer_data
-
-    from services.notion_service import NotionService
-
-    from views.notion_pinterest_view import NotionPinterestView
-
-    from services.version_service import VersionService
 
 
 class Sidebar:  # todo: refactor
@@ -47,6 +24,7 @@ class Sidebar:  # todo: refactor
             'pinterest_service': self.pinterest_service,
             'pinterest_demo_service': self.pinterest_demo_service,
             'csv_service': self.csv_service,
+            'torch_service': self.torch_service,
             'notion_service': self.notion_service,
             'notion_pinterest_service': self.notion_pinterest_service,
             'version_service': self.version_service,
@@ -132,64 +110,26 @@ class Sidebar:  # todo: refactor
     def csv_service(self):
         st.title('CSV service')
 
-        tab1, tab2 = st.tabs(['Use Your CSV File', 'Use Temp Data'])
-
-        if 'is_use_tmp_classification_data' not in st.session_state and 'is_use_tmp_regression_data' not in st.session_state:
-            st.session_state.is_use_tmp_classification_data = False
-            st.session_state.is_use_tmp_regression_data = False
-
-        # todo: session handling, when exists csv in uploaded_file zone
-        with tab2:  # temp data tab
-            if st.button('Use Classification Data'):
-                st.session_state.is_use_tmp_classification_data = True
-                st.session_state.is_use_tmp_regression_data = False
-            if st.button('Use Regression Data'):
-                st.session_state.is_use_tmp_classification_data = False
-                st.session_state.is_use_tmp_regression_data = True
-        with tab1:  # uploaded_files of csv tab
-            uploaded_files = st.file_uploader("Or Your CSV file", type='csv', accept_multiple_files=False)
-            if uploaded_files is not None and (
-                    st.session_state.is_use_tmp_classification_data or st.session_state.is_use_tmp_regression_data
-            ) and st.button('Use Upload CSV File'):
-                st.session_state.is_use_tmp_classification_data = False
-                st.session_state.is_use_tmp_regression_data = False
-
-        if st.session_state.is_use_tmp_classification_data and st.session_state.is_use_tmp_regression_data:
-            raise ValueError
-        elif st.session_state.is_use_tmp_classification_data or st.session_state.is_use_tmp_regression_data:
-            st.metric(label='Now Select Data', value='Temp Data')
-        elif uploaded_files is not None:
-            st.metric(label='Now Select Data', value='Upload CSV File')
+        uploaded_files = st.file_uploader("Or Your CSV file", type='csv', accept_multiple_files=False)
 
         try:
-            if st.session_state.is_use_tmp_classification_data or st.session_state.is_use_tmp_regression_data or uploaded_files is not None:
+            if uploaded_files is not None:
                 with st.spinner('Wait for it...'):
-                    if st.session_state.is_use_tmp_classification_data:
-                        csv_service = CsvService(filepath_or_buffer=get_classification_buffer_data())
-                    elif st.session_state.is_use_tmp_regression_data:
-                        csv_service = CsvService(filepath_or_buffer=get_regression_buffer_data())
-                    elif uploaded_files is not None:
+                    if uploaded_files is not None:
                         csv_service = CsvService(filepath_or_buffer=uploaded_files)
                     else:
                         raise ValueError
-
-                tab1, tab2 = st.tabs(['Data Info', 'sklearn Service'])
-
-                with tab1:  # Check Upload CSV File
-                    with st.expander(label='Show Data'):
-                        st.table(csv_service.df)
-
-                    with st.expander(label='Show Graph of Data', expanded=True):
-                        st.line_chart(csv_service.df)
-
-                    with st.expander(label='Show Diff Column'):
-                        st.table(csv_service.calc_diff())
-
-                with tab2:  # sklearn Service
+                with st.expander(label='Show Data'):
+                    st.table(csv_service.df)
+                if st.button(label='Train'):
                     pass
 
         except Exception as e:
             logger.error(f'ERROR: {uploaded_files=}')
+
+    def torch_service(self):
+        torch_view = TorchView()
+        torch_view.main()
 
     def notion_service(self):
         st.title('Notion Service')
