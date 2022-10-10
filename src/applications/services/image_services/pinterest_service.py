@@ -2,6 +2,8 @@ import logging
 
 from py3pin.Pinterest import Pinterest
 
+from ..utils.re_util import get_only_number
+
 logger = logging.getLogger(__name__)
 
 
@@ -9,6 +11,9 @@ class PinterestService:
     """
     ref: https://github.com/bstoilov/py3-pinterest
     """
+
+    pin_id: str = None
+    board_id: str = None
 
     image_info_list: list = []
     pin_id_list: list = []
@@ -57,13 +62,11 @@ class PinterestService:
         return self.pinterest.search(scope=scope, query=query, page_size=page_size)
 
     def get_board_images_from_pin_id(self, pin_id: str, page_size: int = 100):
-        board_id = self.get_board_id_from_pin_id(pin_id=pin_id)
+        self.pin_id: str = get_only_number(text=pin_id)
+        board_id = self.get_board_id_from_pin_id(pin_id=self.pin_id)
         return self.get_board_feed_orig_images(board_id=board_id, page_size=page_size)
 
     def get_board_id_from_pin_id(self, pin_id: str):
-        # pin_id: str = '901494050386847677'  # sayashi riho
-        # pin_id: str = '901494050386841932'  # oda sakura
-
         pin_info = self.pinterest.load_pin(pin_id=pin_id)
         board_id = pin_info["board"]["id"]
         return board_id
@@ -79,6 +82,7 @@ class PinterestService:
             self.image_info_list = []
         if 0 != len(self.pin_id_list):
             self.pin_id_list = []
+        self.board_id = board_id
         result = self.pinterest.board_feed(board_id=board_id, page_size=page_size)
         for item in result:
             self.image_info_list.append(item['images']['orig']['url'])
