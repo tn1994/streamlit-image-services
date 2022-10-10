@@ -1,5 +1,6 @@
 # https://python.civic-apps.com/zipfile/
 import io
+import os
 import logging
 import zipfile
 
@@ -10,20 +11,40 @@ class ZipFile:
     buffer: io.BytesIO = None
     file_data_dict: dict = {}
 
-    def main(self, buffer=None):
+    def main(self, buffer):
+        """
+        NOTES:
+            with io.BytesIO() as buffer:
+                ZipFile.main(buffer=buffer)
+        :param buffer:
+        :return:
+        """
         try:
             logger.info(f'{self.file_data_dict.keys()=}')
             if 0 == len(self.file_data_dict.keys()):
                 raise AttributeError
 
-            # with zipfile.ZipFile('foo.zip', "w", zipfile.ZIP_DEFLATED) as zf:
             if buffer is None:
-                with io.BytesIO as buffer:
+                with io.BytesIO() as buffer:
                     self.buffer = buffer
 
             self.buffer = buffer
             self.write_zipfile()
 
+        except Exception as e:
+            logger.error(e)
+            raise e
+        else:
+            return self.buffer
+
+    def archive_dir(self, dir_name: str, buffer):
+        """ref: https://hibiki-press.tech/python/zipfile/1433"""
+        try:
+            self.buffer = buffer
+            with zipfile.ZipFile(self.buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                for dirname, subdirs, filenames in os.walk(dir_name):
+                    for fname in filenames:
+                        zf.write(os.path.join(dirname, fname))
         except Exception as e:
             logger.error(e)
             raise e

@@ -8,8 +8,8 @@ from ..services.image_service import ImageService
 from ..services.image_service import SearchImageService
 from ..services.image_service import DownloadImageService
 from ..views.pinterest_view import PinterestView, PinterestDemoView
-from ..services.csv_service import CsvService
-from ..torch_application.torch_view import TorchView
+from ..views.csv_view import CsvView
+from ..views.torch_view import TorchView
 from ..services.notion_service import NotionService
 from ..views.notion_pinterest_view import NotionPinterestView
 from ..services.version_service import VersionService
@@ -108,24 +108,8 @@ class Sidebar:  # todo: refactor
         pinterest_demo_view.main()
 
     def csv_service(self):
-        st.title('CSV service')
-
-        uploaded_files = st.file_uploader("Or Your CSV file", type='csv', accept_multiple_files=False)
-
-        try:
-            if uploaded_files is not None:
-                with st.spinner('Wait for it...'):
-                    if uploaded_files is not None:
-                        csv_service = CsvService(filepath_or_buffer=uploaded_files)
-                    else:
-                        raise ValueError
-                with st.expander(label='Show Data'):
-                    st.table(csv_service.df)
-                if st.button(label='Train'):
-                    pass
-
-        except Exception as e:
-            logger.error(f'ERROR: {uploaded_files=}')
+        csv_view = CsvView()
+        csv_view.main()
 
     def torch_service(self):
         torch_view = TorchView()

@@ -1,15 +1,21 @@
 import io
 import os
 import shutil
+import logging
 import requests
+from typing import Optional
 
 import cv2
 import torch
 import torchvision
+import numpy as np
 import pandas as pd
 from PIL import Image
+import face_recognition
 from torchvision import transforms
 from torch.utils.data import Dataset
+
+logger = logging.getLogger(__name__)
 
 
 class MyDataset(Dataset):
@@ -27,7 +33,7 @@ class MyDataset(Dataset):
     ]
 
     transformer = None
-    df = None
+    df: pd.DataFrame = None
 
     def __init__(self, df=None):
         if df is not None:
@@ -83,48 +89,67 @@ class MyDataset(Dataset):
         return result_dict
 
 
-def setup_data(df: pd.DataFrame):
-    import face_recognition
-    # !pip3 install face_recognition
-    # !rm - rf. / face_recognition /.ipynb_checkpoints
-    # !ls - a
-    # face_recognition
+def setup_data(df: pd.DataFrame, is_face_recognition: bool, timestamp: str):
+    try:
+        df: pd.DataFrame = df.copy()
+        # '901494050386870050', '901494050386841932'
+        # list_a = df.query('label == 901494050386870050')['link'].tolist()
+        # list_b = df.query('label == 901494050386841932')['link'].tolist()
 
-    # '901494050386870050', '901494050386841932'
-    list_a = df.query('label == 901494050386870050')['link'].tolist()
-    list_b = df.query('label == 901494050386841932')['link'].tolist()
+        # 上に合わせて書き換えてください！！
+        # data_list = [MyDataset.image_link_list]
+        # data_list = [list_a, list_b]
 
-    # 上に合わせて書き換えてください！！
-    # data_list = [MyDataset.image_link_list]
-    data_list = [list_a, list_b]
+        label_list: list = df['label'].unique().tolist()
 
-    # クラス名を記載してください！
-    name_list = ['sayashi_riho', 'oda_sakura']
-    for name, l in zip(name_list, data_list):
-        count = 1
-        dir_name: str = f'face_recognition/{name}'
-        os.makedirs(dir_name, exist_ok=True)
-        for idx, path in enumerate(l):
-            face_image = generate_face_recognition(path)
-            if face_image is not None:
-                cv2.imwrite(f"./{dir_name}/{count}.png", face_image)
-                count += 1
-            else:
-                print('Image is None: ', path)
+        data_list: list = []
+
+        logger.info(f'{label_list=}')
+        for label in label_list:
+            data_list.append(df.query(f'label == {label}')['link'].tolist())
+
+        logger.info(f'{label_list=}, {data_list=}')
+        # クラス名を記載してください！
+        # name_list = ['sayashi_riho', 'oda_sakura']
+        name_list: list = label_list
+        logger.info(f'{label_list=}, {name_list=}')
+
+        if 1 != len(label_list) != len(name_list):
+            raise ValueError
+
+        for name, l in zip(name_list, data_list):
+            count = 1
+            for idx, path in enumerate(l):
+                if is_face_recognition:
+                    face_image = generate_face_recognition(path)
+                    if face_image is not None:
+                        dir_name: str = f'{timestamp}/face_recognition/{name}'
+                        os.makedirs(dir_name, exist_ok=True)
+                        _path: str = f'./{dir_name}/{count}.png'
+                        cv2.imwrite(_path, face_image)
+                        logger.info(f'Check it: {_path}')
+                        count += 1
+                    else:
+                        print('Image is None: ', path)
+                else:
+                    dir_name: str = f'{timestamp}/original/{name}'
+                    os.makedirs(dir_name, exist_ok=True)
+                    get_image_for_save(image_link=path, dir_name=f'./{dir_name}')
+    except Exception as e:
+        raise e
 
 
 def generate_face_recognition(path: str, is_get_pil_image: bool = False):
-    import face_recognition
     image = imread_web(path)  # cv2
     if image is None:
-        print('Image is None: ', path)
+        logger.info('Image is None: ', path)
     else:
         faces = face_recognition.face_locations(image)
         if 0 != len(faces):
             top, right, bottom, left = faces[0]
-            print(f"A face is located at pixel location "
-                  f"Top: {top}, Left: {left}, "
-                  f"Bottom: {bottom}, Right: {right}")
+            logger.info(f"A face is located at pixel location "
+                        f"Top: {top}, Left: {left}, "
+                        f"Bottom: {bottom}, Right: {right}")
             face_image = image[top:bottom, left:right]
             if is_get_pil_image:
                 face_image = cv2.cvtColor(face_image, cv2.COLOR_BGR2RGB)
@@ -132,10 +157,8 @@ def generate_face_recognition(path: str, is_get_pil_image: bool = False):
     return None
 
 
-def get_dataset():
+def get_dataset(data_folder='./face_recognition/'):
     # ref: https://qiita.com/ryryry/items/b1da4855504dcd3f9d98
-
-    data_folder = './face_recognition/'
 
     transform_dict = {
         'train': transforms.Compose(
@@ -154,16 +177,19 @@ def get_dataset():
 
     phase = 'train'
 
-    data = torchvision.datasets.ImageFolder(root=data_folder, transform=transform_dict[phase])
+    dataset = torchvision.datasets.ImageFolder(root=data_folder, transform=transform_dict[phase])
+    return dataset
 
+
+def split_train_valid_dataset(dataset):
     train_ratio = 0.8
 
-    train_size = int(train_ratio * len(data))
+    train_size = int(train_ratio * len(dataset))
     # int()で整数に。
-    val_size = len(data) - train_size
+    val_size = len(dataset) - train_size
     data_size = {"train": train_size, "val": val_size}
     #          =>{"train": 112,       "val": 28}
-    train_dataset, valid_dataset = torch.utils.data.random_split(data, [train_size, val_size])
+    train_dataset, valid_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
     return train_dataset, valid_dataset
 
 
@@ -180,17 +206,15 @@ def get_image(image_link: str) -> Image:
         return img
 
 
-def get_image_for_save(image_link: str):
+def get_image_for_save(image_link: str, dir_name: str):
     res = requests.get(image_link, stream=True)
     if res.status_code == 200:
         filename: str = os.path.basename(image_link)
-        save_image(filename=filename, obj=res.raw)
+        save_image(filename=filename, obj=res.raw, dir_name=dir_name)
 
 
-def save_image(filename: str, obj, is_in_dir: bool = True):
-    is_in_dir = False
-    if is_in_dir:
-        dir_name: str = ''
+def save_image(filename: str, obj, dir_name: str = None):
+    if dir_name is not None:
         os.makedirs(dir_name, exist_ok=True)
         path: str = os.path.join(dir_name, filename)
     else:
@@ -200,18 +224,15 @@ def save_image(filename: str, obj, is_in_dir: bool = True):
         obj.decode_content = True
         shutil.copyfileobj(obj, f)
 
+    logger.info(f'save_image: {path}')
+
 
 def imread_web(url):
     """
-    ref: https://ensekitt.hatenablog.com/entry/2018/06/25/200000
+    ref: https://qiita.com/derodero24/items/f22c22b22451609908ee
     """
-    import tempfile
-    # 画像をリクエストする
     res = requests.get(url)
-    img = None
-    # Tempfileを作成して即読み込む
-    with tempfile.NamedTemporaryFile(dir='/') as fp:
-        fp.write(res.content)
-        fp.file.seek(0)
-        img = cv2.imread(fp.name)
+    pil_image = Image.open(io.BytesIO(res.content))
+    new_image = np.array(pil_image, dtype=np.uint8)
+    img = cv2.cvtColor(new_image, cv2.COLOR_RGB2BGR)
     return img

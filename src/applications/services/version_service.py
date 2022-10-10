@@ -22,15 +22,14 @@ class VersionService:
         version = re.search(r'[\d.]+', list_files.stdout.decode())
         if version is None:
             return '-'
-        else:
-            return version.group()
+        return version.group()
 
     def get_pip_list(self, format: str = 'json'):
         """
         ref: https://minus9d.hatenablog.com/entry/2021/06/08/220614
         :return:
         """
-        if format not in ['json', 'freeze', 'columns']:
+        if format not in ('json', 'freeze', 'columns'):
             raise ValueError
 
         list_files = subprocess.run(['pip3', 'list', '--format', format], capture_output=True)
