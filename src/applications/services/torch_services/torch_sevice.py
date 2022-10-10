@@ -24,9 +24,9 @@ from sklearn.model_selection import GroupKFold
 from sklearn.model_selection import train_test_split
 
 import cv2
-from src.services.torch_services.datasets.dataset import imread_web
-from src.services.torch_services.datasets.dataset import MyDataset, setup_data, get_dataset
-from src.services.torch_services.models.model import get_model
+from src.applications.services.torch_services.datasets.dataset import imread_web
+from src.applications.services.torch_services.datasets.dataset import MyDataset, setup_data, get_dataset
+from src.applications.services.torch_services.models.model import get_model
 
 seed = 42
 random.seed(seed)

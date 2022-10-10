@@ -105,23 +105,31 @@ def setup_data(df: pd.DataFrame):
         dir_name: str = f'face_recognition/{name}'
         os.makedirs(dir_name, exist_ok=True)
         for idx, path in enumerate(l):
-            print(path)
-            image = imread_web(path)  # cv2
-            if image is None:
-                print('Image is None: ', path)
-                continue
-            faces = face_recognition.face_locations(image)
-            if 0 != len(faces):
-                top, right, bottom, left = faces[0]
-                print(
-                    "A face is located at pixel location Top: {}, Left: {}, Bottom: {}, Right: {}".format(top, left,
-                                                                                                          bottom,
-                                                                                                          right))
-                face_image = image[top:bottom, left:right]
+            face_image = generate_face_recognition(path)
+            if face_image is not None:
                 cv2.imwrite(f"./{dir_name}/{count}.png", face_image)
                 count += 1
             else:
                 print('Image is None: ', path)
+
+
+def generate_face_recognition(path: str, is_get_pil_image: bool = False):
+    import face_recognition
+    image = imread_web(path)  # cv2
+    if image is None:
+        print('Image is None: ', path)
+    else:
+        faces = face_recognition.face_locations(image)
+        if 0 != len(faces):
+            top, right, bottom, left = faces[0]
+            print(f"A face is located at pixel location "
+                  f"Top: {top}, Left: {left}, "
+                  f"Bottom: {bottom}, Right: {right}")
+            face_image = image[top:bottom, left:right]
+            if is_get_pil_image:
+                face_image = cv2.cvtColor(face_image, cv2.COLOR_BGR2RGB)
+            return face_image
+    return None
 
 
 def get_dataset():
@@ -202,7 +210,7 @@ def imread_web(url):
     res = requests.get(url)
     img = None
     # Tempfileを作成して即読み込む
-    with tempfile.NamedTemporaryFile(dir='./') as fp:
+    with tempfile.NamedTemporaryFile(dir='/') as fp:
         fp.write(res.content)
         fp.file.seek(0)
         img = cv2.imread(fp.name)
