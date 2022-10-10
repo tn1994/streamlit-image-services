@@ -1,6 +1,7 @@
 import io
 import random
 import logging
+from typing import List
 
 import pandas as pd
 
@@ -18,6 +19,12 @@ class CsvService:
     def calc_diff(self):
         diff_column = self.df.diff(axis=1)
         return diff_column
+
+
+def concat_df(df_in_list: List[pd.DataFrame], axis: int = 0):
+    if not isinstance(df_in_list, List):
+        raise TypeError
+    return pd.concat(df_in_list, axis=axis)
 
 
 def get_classification_data() -> pd.DataFrame:
