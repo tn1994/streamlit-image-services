@@ -4,14 +4,15 @@ import traceback
 
 import streamlit as st
 
+from .base_view import spinner_wrapper
+from ..views.pinterest_view import PinterestView, PinterestBoardView
+from ..views.csv_view import CsvView
+from ..views.torch_view import TorchView
+from ..views.notion_pinterest_view import NotionPinterestView
 from ..services.image_service import ImageService
 from ..services.image_service import SearchImageService
 from ..services.image_service import DownloadImageService
-from ..views.pinterest_view import PinterestView, PinterestDemoView
-from ..views.csv_view import CsvView
-from ..views.torch_view import TorchView
 from ..services.notion_service import NotionService
-from ..views.notion_pinterest_view import NotionPinterestView
 from ..services.version_service import VersionService
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class Sidebar:  # todo: refactor
     def __init__(self):
         self.service_dict = {
             'pinterest_service': self.pinterest_service,
-            'pinterest_demo_service': self.pinterest_demo_service,
+            'pinterest_board_service': self.pinterest_board_service,
             'csv_service': self.csv_service,
             'torch_service': self.torch_service,
             'notion_service': self.notion_service,
@@ -103,9 +104,9 @@ class Sidebar:  # todo: refactor
         pinterest_view = PinterestView()
         pinterest_view.main()
 
-    def pinterest_demo_service(self):
-        pinterest_demo_view = PinterestDemoView()
-        pinterest_demo_view.main()
+    def pinterest_board_service(self):
+        pinterest_board_view = PinterestBoardView()
+        pinterest_board_view.main()
 
     def csv_service(self):
         csv_view = CsvView()
@@ -133,6 +134,7 @@ class Sidebar:  # todo: refactor
         notion_pinterest_view = NotionPinterestView()
         notion_pinterest_view.main()
 
+    @spinner_wrapper
     def version_service(self):
         st.title('Version Service')
         version_service = VersionService()
@@ -149,7 +151,6 @@ class Sidebar:  # todo: refactor
                            data=version_service.get_pip_list(format='freeze'),
                            file_name='requirements.txt',
                            mime='text/txt')
-        with st.spinner('Wait for it...'):
-            pip_list = version_service.get_pip_list(format='json')
+        pip_list = version_service.get_pip_list(format='json')
         with st.expander('Pip List', expanded=True):
             st.table(pip_list)

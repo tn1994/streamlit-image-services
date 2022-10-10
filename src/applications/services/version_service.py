@@ -5,26 +5,31 @@ import json
 import logging
 import subprocess
 
+from .utils.re_util import get_only_version
+
 logger = logging.getLogger(__name__)
 
 
 class VersionService:
 
-    def get_python_version(self):
-        version = re.search(r'[\d.]+', sys.version)
-        return version.group()
+    @staticmethod
+    def get_python_version():
+        return get_only_version(text=sys.version)
 
-    def get_pip_version(self):
+    @staticmethod
+    def get_pip_version():
         return pip.__version__
 
-    def get_library_version(self, library_name):
+    @staticmethod
+    def get_library_version(library_name: str):
         list_files = subprocess.run(['pip3', 'show', library_name], capture_output=True)
-        version = re.search(r'[\d.]+', list_files.stdout.decode())
+        version = get_only_version(text=list_files.stdout.decode())
         if version is None:
             return '-'
-        return version.group()
+        return version
 
-    def get_pip_list(self, format: str = 'json'):
+    @staticmethod
+    def get_pip_list(format: str = 'json'):
         """
         ref: https://minus9d.hatenablog.com/entry/2021/06/08/220614
         :return:

@@ -4,15 +4,26 @@ import logging
 import pandas as pd
 import streamlit as st
 
-from ..services.image_services.pinterest_service import PinterestService
-from ..services.torch_services.datasets.dataset import generate_face_recognition
-
 from ..views.face_recognition_view import show_face_recognition
+from ..services.image_services.pinterest_service import PinterestService
 
 logger = logging.getLogger(__name__)
 
 
-class PinterestView:
+class PinterestBaseView:
+
+    @staticmethod
+    def show_pins_images(image_info_list: list):
+        with st.expander(label='Show Pins', expanded=True):
+            num = 3
+            col = st.columns(num)
+            if 0 != len(image_info_list):
+                for idx, img_link in enumerate(image_info_list):
+                    with col[idx % num]:
+                        st.image(image_info_list[idx], use_column_width=True)
+
+
+class PinterestView(PinterestBaseView):
     title: str = 'Pinterest Service'
 
     def main(self):
@@ -31,19 +42,15 @@ class PinterestView:
                 _query: str = query if 0 != len(query) else select_query
                 pinterest_service.search(query=_query, num_pins=num_pins)
 
-            st.table(pinterest_service.pin_id_list)
-            st.table(pinterest_service.image_info_list)
+            with st.expander(label='Show Pin ID List', expanded=False):
+                st.table(pinterest_service.pin_id_list)
+            with st.expander(label='Show Pins Link', expanded=False):
+                st.table(pinterest_service.image_info_list)
 
-            with st.expander(label='Show Pins', expanded=True):
-                num = 3
-                col = st.columns(num)
-                if 0 != len(pinterest_service.image_info_list):
-                    for idx, img_link in enumerate(pinterest_service.image_info_list):
-                        with col[idx % num]:
-                            st.image(pinterest_service.image_info_list[idx], use_column_width=True)
+            self.show_pins_images(image_info_list=pinterest_service.image_info_list)
 
 
-class PinterestDemoView:
+class PinterestBoardView(PinterestBaseView):
     title: str = 'Pinterest Board Service'
 
     def main(self):
@@ -73,6 +80,7 @@ class PinterestDemoView:
                     pinterest_service.get_board_feed_orig_images(board_id=board_id,
                                                                  page_size=num_pins)
                     self._download(data=pinterest_service.image_info_list, label=board_id)
+                st.table([{'pin_id': pinterest_service.pin_id, 'board_id': pinterest_service.board_id}])
                 with st.expander(label='Show Pins ID', expanded=False):
                     st.table(pinterest_service.pin_id_list)
                 with st.expander(label='Show Pins Link', expanded=False):
@@ -82,21 +90,16 @@ class PinterestDemoView:
                     self._show_face_recognition(image_info_list=pinterest_service.image_info_list,
                                                 label_id=pin_id if 0 != len(pin_id) else board_id)
                 else:
-                    with st.expander(label='Show Pins', expanded=True):
-                        num = 3
-                        col = st.columns(num)
-                        if 0 != len(pinterest_service.image_info_list):
-                            for idx, img_link in enumerate(pinterest_service.image_info_list):
-                                with col[idx % num]:
-                                    st.image(pinterest_service.image_info_list[idx], use_column_width=True)
+                    self.show_pins_images(image_info_list=pinterest_service.image_info_list)
 
-    def _download(self, data, label: str):
+    @staticmethod
+    def _download(data, label: str, button_label: str = 'Download csv'):
         if isinstance(data, list):
             data = pd.DataFrame({'link': data,
                                  'label': [label for _ in range(len(data))]}).to_csv(index=False)
-        st.download_button(key=uuid.uuid1(), label='Download csv', data=data, file_name='filelist.csv', mime='text/csv')
+        st.download_button(key=uuid.uuid1(), label=button_label, data=data, file_name='filelist.csv', mime='text/csv')
 
     def _show_face_recognition(self, image_info_list: list, label_id: str):
         if 0 != len(image_info_list):
             _face_recognition_list: list = show_face_recognition(image_info_list=image_info_list)
-            self._download(data=_face_recognition_list, label=label_id)
+            self._download(data=_face_recognition_list, label=label_id, button_label='Download Face Recognition csv')
