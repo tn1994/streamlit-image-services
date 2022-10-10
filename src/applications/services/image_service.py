@@ -100,7 +100,7 @@ class DownloadImageService(ImageService):
     def __init__(self, cx: str, key: str):
         super(DownloadImageService, self).__init__()
 
-        if 0 == len(cx) or 0 == len(key):
+        if 0 in (len(cx), len(key)):
             raise ValueError
         self.PARAMS.update(cx=cx, key=key)
 

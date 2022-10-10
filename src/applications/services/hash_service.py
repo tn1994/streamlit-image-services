@@ -19,5 +19,4 @@ def check_hashes(password: str, hashed_text: str) -> str or bool:
     """
     if make_hashes(password) == hashed_text:
         return True
-    else:
-        return False
+    return False

@@ -8,4 +8,5 @@ RUN apt-get update && \
     apt-get install -y libgl1-mesa-dev
 
 RUN pip3 install --upgrade pip setuptools && \
+    pip3 install --upgrade flake8 pytest refurb && \
     pip3 install --no-cache-dir -r requirements.txt
