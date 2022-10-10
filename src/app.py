@@ -2,10 +2,9 @@ import logging
 
 import streamlit as st
 
-from views.sidebar import Sidebar
-from views.about_me import AboutMe
-from services.hash_service import check_hashes
-from services.utils.analysis_memory import get_memory_state_percent
+from applications.views.sidebar import Sidebar
+from applications.views.about_me import AboutMe
+from applications.services.utils.analysis_memory import get_memory_state_percent
 
 logger = logging.getLogger(__name__)
 
