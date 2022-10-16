@@ -23,7 +23,8 @@ class ImageService:
 
     def is_exists_in_url(self, url: str) -> bool:
         _, ext = os.path.splitext(url)
-        # return 0 != len([extension for extension in self.IMAGE_EXTENSIONS if extension in url])
+        # return 0 != len([extension for extension in self.IMAGE_EXTENSIONS if
+        # extension in url])
         return ext in self.IMAGE_EXTENSIONS
 
 
@@ -137,7 +138,8 @@ class DownloadImageService(ImageService):
                         if r.status_code == 200:
                             filename: str = os.path.basename(item_json['link'])
                             result_dict[filename] = r.raw.read()
-                            # self.save_image(filename=filename, obj=r.raw)  # todo: save_image flow
+                            # self.save_image(filename=filename, obj=r.raw)  #
+                            # todo: save_image flow
                     else:
                         r = requests.get(item_json['link'], stream=True)
                         if r.status_code == 200:

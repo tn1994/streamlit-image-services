@@ -1,4 +1,3 @@
-import re
 import sys
 import pip
 import json
@@ -22,7 +21,8 @@ class VersionService:
 
     @staticmethod
     def get_library_version(library_name: str):
-        list_files = subprocess.run(['pip3', 'show', library_name], capture_output=True)
+        list_files = subprocess.run(
+            ['pip3', 'show', library_name], capture_output=True)
         version = get_only_version(text=list_files.stdout.decode())
         if version is None:
             return '-'
@@ -37,7 +37,8 @@ class VersionService:
         if format not in ('json', 'freeze', 'columns'):
             raise ValueError
 
-        list_files = subprocess.run(['pip3', 'list', '--format', format], capture_output=True)
+        list_files = subprocess.run(
+            ['pip3', 'list', '--format', format], capture_output=True)
 
         match format:
             case 'json':

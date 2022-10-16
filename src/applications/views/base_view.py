@@ -21,8 +21,13 @@ class BaseView(ABC):
 
     @staticmethod
     def download_df_as_csv(df: pd.DataFrame, file_name='filelist.csv'):
-        st.download_button(key=uuid.uuid1(), label='Download csv', data=df.to_csv(index=False),
-                           file_name=file_name, mime='text/csv')
+        st.download_button(
+            key=uuid.uuid1(),
+            label='Download csv',
+            data=df.to_csv(
+                index=False),
+            file_name=file_name,
+            mime='text/csv')
 
 
 def spinner_wrapper(func):

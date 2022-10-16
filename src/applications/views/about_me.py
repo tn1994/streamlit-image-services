@@ -57,7 +57,8 @@ class AboutMe:
 
             with c3:
                 st.markdown('#### Infra')
-                get_badge_as_markdown(subject='Amazon%20AWS', logo='amazon-aws')
+                get_badge_as_markdown(
+                    subject='Amazon%20AWS', logo='amazon-aws')
                 get_badge_as_markdown(logo='Amazon%20EC2')
                 get_badge_as_markdown(logo='Amazon%20RDS')
                 get_badge_as_markdown(logo='Amazon%20S3')
@@ -65,8 +66,12 @@ class AboutMe:
                 get_badge_as_markdown(logo='Amazon%20CloudWatch')
                 get_badge_as_markdown(logo='AWS%20Lambda')
                 get_badge_as_markdown(logo='AWS%20Fargate')
-                get_badge_as_markdown(subject='Amazon%20SageMaker', logo='amazon-aws')
-                get_badge_as_markdown(subject='Amazon%20CodePipeline', logo='amazon-aws')
+                get_badge_as_markdown(
+                    subject='Amazon%20SageMaker',
+                    logo='amazon-aws')
+                get_badge_as_markdown(
+                    subject='Amazon%20CodePipeline',
+                    logo='amazon-aws')
 
             c1, c2, c3, c4 = st.columns(4)
             with c1:
@@ -100,7 +105,10 @@ class AboutMe:
                 "![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=tn1994&theme=radical)")
 
 
-def get_badge_as_markdown(logo: str, subject: str = None, badge_color: str = '232F3E'):
+def get_badge_as_markdown(
+        logo: str,
+        subject: str = None,
+        badge_color: str = '232F3E'):
     if subject is None:
         subject = logo
     url: str = f'https://img.shields.io/badge/-{subject}-{badge_color}.svg?logo={logo}&style=flat'

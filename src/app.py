@@ -25,22 +25,18 @@ class APP:
         )
 
     def main(self):
-        if 90 > get_memory_state_percent():
-            self._sidebar()
-        else:
-            st.error('Memory Over Error')
+        self._sidebar()
 
     def _top_page(self):
         self._title()
         AboutMe.main()
 
-    def _title(self):
+    @staticmethod
+    def _title():
         st.title('streamlit-demo')
 
-    def _write(self):
-        st.write('check write')
-
-    def _sidebar(self):
+    @staticmethod
+    def _sidebar():
         sidebar = Sidebar()
         sidebar.main()
 

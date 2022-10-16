@@ -15,7 +15,7 @@ Check out the configuration reference at https://huggingface.co/docs/hub/spaces-
 
 ## Usage
 
-1. Copy from secrets_config/sample.secrets.toml to config/secrets.toml, and input value
+1. Copy from secrets_config/sample.secrets.toml to .streamlit/secrets.toml, and input value
 
 ```toml
 env='develop'

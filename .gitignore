@@ -135,5 +135,4 @@ dmypy.json
 .idea
 
 # secret of streamlit
-config/secrets.toml
-*.streamlit
+.streamlit/secrets.toml

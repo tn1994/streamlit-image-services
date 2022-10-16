@@ -66,7 +66,8 @@ class NotionPinterestService(NotionBaseService):
         result_list: list = []
         for item in result:
             tmp_dict = {}
-            for key in self.column_name_list:  # todo: change to item['properties'].keys() ?
+            # todo: change to item['properties'].keys() ?
+            for key in self.column_name_list:
                 attribute = item['properties'][key]
                 match attribute['type']:
                     case 'number':
@@ -104,7 +105,12 @@ class NotionPinterestService(NotionBaseService):
         else:
             return result_list
 
-    def insert_item(self, database_id: str, link_id: str, tag: str, hash: str = None):
+    def insert_item(
+            self,
+            database_id: str,
+            link_id: str,
+            tag: str,
+            hash: str = None):
         try:
             url = f'https://api.notion.com/v1/pages'
             data = {
