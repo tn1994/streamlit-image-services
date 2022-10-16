@@ -150,11 +150,19 @@ class TorchService:
 
                 # epochごとのlossと正解率を表示
                 epoch_loss = epoch_loss / len(dataloaders_dict[phase].dataset)
-                epoch_acc = epoch_corrects.double() / len(dataloaders_dict[phase].dataset)
+                epoch_acc = epoch_corrects.double(
+                ) / len(dataloaders_dict[phase].dataset)
 
-                print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+                print(
+                    '{} Loss: {:.4f} Acc: {:.4f}'.format(
+                        phase, epoch_loss, epoch_acc))
 
-    def inference(self, model, input_image: Image, is_transformed: bool = False, categories: dict = None):
+    def inference(
+            self,
+            model,
+            input_image: Image,
+            is_transformed: bool = False,
+            categories: dict = None):
         if not is_transformed:
             preprocess = transforms.Compose([
                 transforms.Resize(256),
@@ -163,7 +171,8 @@ class TorchService:
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ])
             input_tensor = preprocess(input_image)
-            input_batch = input_tensor.unsqueeze(0)  # create a mini-batch as expected by the model
+            # create a mini-batch as expected by the model
+            input_batch = input_tensor.unsqueeze(0)
         else:
             input_batch = input_image
 
@@ -176,13 +185,15 @@ class TorchService:
             output = model(input_batch)
         # Tensor of shape 1000, with confidence scores over Imagenet's 1000 classes
         # print(output[0])
-        # The output has unnormalized scores. To get probabilities, you can run a softmax on it.
+        # The output has unnormalized scores. To get probabilities, you can run
+        # a softmax on it.
         probabilities = torch.nn.functional.softmax(output[0], dim=0)
 
         if categories is None:
             # https://slundberg.github.io/shap/notebooks/ImageNet%20VGG16%20Model%20with%20Keras.html
             import requests
-            r = requests.get('https://s3.amazonaws.com/deep-learning-models/image-models/imagenet_class_index.json')
+            r = requests.get(
+                'https://s3.amazonaws.com/deep-learning-models/image-models/imagenet_class_index.json')
             categories = r.json()
             top5_prob, top5_catid = torch.topk(probabilities, 5)
         else:
@@ -192,7 +203,8 @@ class TorchService:
         print('top5_catid: ', top5_catid)
         for i in range(top5_prob.size(0)):
             # print(categories[ str(top5_catid[i].item()) ])
-            keys = [k for k, v in categories.items() if v == top5_catid[i].item()]
+            keys = [k for k, v in categories.items() if v ==
+                    top5_catid[i].item()]
             print(top5_catid[i].item(), keys[0])
 
     # https://www.kaggle.com/code/pestipeti/simple-pytorch-inference/notebook
@@ -219,7 +231,11 @@ class TorchService:
             inputs = batch["image"]
             image_ids = batch["image_id"]
             inputs = inputs.to(device, dtype=torch.float)
-            self.inference(self.model, input_image=inputs, is_transformed=True, categories=class_to_idx)
+            self.inference(
+                self.model,
+                input_image=inputs,
+                is_transformed=True,
+                categories=class_to_idx)
 
     def save_model(self, model, model_dir: str, model_name: str = 'model.pth',
                    is_and_package_list: bool = True) -> None:
@@ -230,14 +246,20 @@ class TorchService:
         torch.save(self.get_train_model_weights(model=model), model_path)
 
         if is_and_package_list:
-            pip_packages_path: str = os.path.join(model_dir, 'requirements.txt')
+            pip_packages_path: str = os.path.join(
+                model_dir, 'requirements.txt')
             cmd: str = f'pip freeze > {pip_packages_path}'
             os.system(cmd)
 
     def get_train_model_weights(self, model):
         return model.cpu().state_dict()
 
-    def main(self, df: pd.DataFrame, model_name: str, num_epochs: int, is_face_recognition: bool = True):
+    def main(
+            self,
+            df: pd.DataFrame,
+            model_name: str,
+            num_epochs: int,
+            is_face_recognition: bool = True):
         # if not torch.cuda.is_available():
         #     raise
         if df is None:
@@ -249,15 +271,22 @@ class TorchService:
 
         self.model = get_model(model_name=model_name)
         logger.info('Start Setup')
-        setup_data(df=self.df, is_face_recognition=is_face_recognition, timestamp=self.timestamp)
+        setup_data(
+            df=self.df,
+            is_face_recognition=is_face_recognition,
+            timestamp=self.timestamp)
 
         _data_folder = f'./{self.timestamp}/face_recognition/' if is_face_recognition else f'./{self.timestamp}/original/'
 
         dataset = get_dataset(data_folder=_data_folder)
-        train_dataset, valid_dataset = split_train_valid_dataset(dataset=dataset)
+        train_dataset, valid_dataset = split_train_valid_dataset(
+            dataset=dataset)
         self.class_to_idx = dataset.class_to_idx
 
-        self.train(train_dataset=train_dataset, valid_dataset=valid_dataset, num_epochs=num_epochs)
+        self.train(
+            train_dataset=train_dataset,
+            valid_dataset=valid_dataset,
+            num_epochs=num_epochs)
         self.check_inference(class_to_idx=self.class_to_idx)
         self.save_model(model=self.model, model_dir=self.timestamp)
 
@@ -273,13 +302,15 @@ class FaceRecognition:
             r.raw.decode_content = True
             shutil.copyfileobj(r.raw, f)
 
-    def get_face_using_haarcascade_frontalface_default(self, df: pd.DataFrame, path_or_link: str = 'link'):
+    def get_face_using_haarcascade_frontalface_default(
+            self, df: pd.DataFrame, path_or_link: str = 'link'):
         """
         ref: https://zenn.dev/opamp/articles/73126cf8c0135d
         :return:
         """
         # 識別したい画像分だけ準備してください！
-        cascade = cv2.CascadeClassifier('./haarcascade_frontalface_default.xml')
+        cascade = cv2.CascadeClassifier(
+            './haarcascade_frontalface_default.xml')
 
         data_list = [df[path_or_link].tolist()]
 
@@ -297,7 +328,8 @@ class FaceRecognition:
 
                 faces = cascade.detectMultiScale(gray)
                 for (x, y, w, h) in faces:
-                    cv2.imwrite(f"./cut/{name}_{count}.png", image[y:y + h, x:x + w])
+                    cv2.imwrite(f"./cut/{name}_{count}.png",
+                                image[y:y + h, x:x + w])
                     count += 1
                 if count >= 50:
                     break

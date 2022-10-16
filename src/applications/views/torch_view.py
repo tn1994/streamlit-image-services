@@ -30,13 +30,15 @@ class TorchView:
         st.metric(label='is_cuda_available', value=self.is_cuda_available)
 
         st.markdown('## 1. Setup Data')
-        uploaded_files = st.file_uploader("Or Your CSV file", type='csv', accept_multiple_files=False)
+        uploaded_files = st.file_uploader(
+            "Or Your CSV file", type='csv', accept_multiple_files=False)
 
         try:
             if uploaded_files is not None:
                 with st.spinner('Wait for it...'):
                     if uploaded_files is not None:
-                        csv_service = CsvService(filepath_or_buffer=uploaded_files)
+                        csv_service = CsvService(
+                            filepath_or_buffer=uploaded_files)
                     else:
                         raise ValueError
                 with st.expander(label='Show Data'):
@@ -67,12 +69,18 @@ class TorchView:
     @spinner_wrapper
     def _show_face_recognition(self, df: pd.DataFrame):
         df: pd.DataFrame = df.copy()
-        select_label = st.selectbox(label='Select Label', options=df['label'].unique())
-        num_images: int = st.slider('Num of Images', 1, df.query(f'label == {select_label}').__len__(), 5)
-        is_show: bool = st.selectbox(label='Is Show Face Recognition', options=[False, True])
+        select_label = st.selectbox(
+            label='Select Label',
+            options=df['label'].unique())
+        num_images: int = st.slider('Num of Images', 1, df.query(
+            f'label == {select_label}').__len__(), 5)
+        is_show: bool = st.selectbox(
+            label='Is Show Face Recognition', options=[
+                False, True])
 
         if num_images and is_show and select_label:
-            image_info_list: list = df.query(f'label == {select_label}')['link'].tolist()
+            image_info_list: list = df.query(f'label == {select_label}')[
+                'link'].tolist()
             _image_info_list = image_info_list[:num_images]
             show_face_recognition(image_info_list=_image_info_list)
 
@@ -80,23 +88,34 @@ class TorchView:
         df: pd.DataFrame = df.copy()
 
         with st.form(key=self.key_formm_of_fit_model):
-            use_images: str = st.selectbox(label='Use Image Is', options=['Original', 'Face Recognition'])
-            select_model: str = st.selectbox(label='Use Model Is', options=model_name_list)
+            use_images: str = st.selectbox(
+                label='Use Image Is', options=[
+                    'Original', 'Face Recognition'])
+            select_model: str = st.selectbox(
+                label='Use Model Is', options=model_name_list)
             # query: str = st.text_input(label='Other Query')
             num_epochs: int = st.slider('Num of Epochs', 1, 100, 25)
-            download_after_train: str = st.selectbox(label='Download After Train Is',
-                                                     options=['Nothing', 'All Data and Model', 'Model Only'])
+            download_after_train: str = st.selectbox(
+                label='Download After Train Is', options=[
+                    'Nothing', 'All Data and Model', 'Model Only'])
             submitted = st.form_submit_button(label='Train')
 
-        # if use_images is not None and select_model is not None and download_after_train is not None and submitted:
-        if all([use_images, select_model, download_after_train, num_epochs]) and submitted:
+        # if use_images is not None and select_model is not None and
+        # download_after_train is not None and submitted:
+        if all([use_images,
+                select_model,
+                download_after_train,
+                num_epochs]) and submitted:
             match self.is_cuda_available:
                 case False:
                     with st.spinner('Trining Model Now...'):
                         torch_service = TorchService()
                         _is_face_recognition = True if use_images == 'Face Recognition' else False
-                        torch_service.main(df=df, model_name=select_model, num_epochs=num_epochs,
-                                           is_face_recognition=_is_face_recognition)
+                        torch_service.main(
+                            df=df,
+                            model_name=select_model,
+                            num_epochs=num_epochs,
+                            is_face_recognition=_is_face_recognition)
                 case False:
                     st.error('Cuda is not available. please change server.')
                 case _:
@@ -119,9 +138,9 @@ class TorchView:
             case 'All Data and Model':
                 with io.BytesIO() as buffer:
                     zipfile = ZipFile()
-                    zipfile.archive_dir(dir_name=f'./{torch_service.timestamp}', buffer=buffer)
+                    zipfile.archive_dir(
+                        dir_name=f'./{torch_service.timestamp}', buffer=buffer)
                     st.download_button(label='Download All Data',
                                        data=zipfile.buffer,
                                        file_name='data.zip',
                                        mime='application/zip')
-

@@ -20,8 +20,8 @@ def show_face_recognition(image_info_list: list) -> list:
                 with col1:
                     st.image(image_info_list[idx], use_column_width=True)
                 with col2:
-                    image = generate_face_recognition(path=image_info_list[idx],
-                                                      is_get_pil_image=True)
+                    image = generate_face_recognition(
+                        path=image_info_list[idx], is_get_pil_image=True)
                     if image is None:
                         image = image_info_list[idx]
                     else:

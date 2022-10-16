@@ -37,8 +37,8 @@ def get_classification_data() -> pd.DataFrame:
         humidity_name: humidity_list,
         'is_comfortable': 0
     })
-    df.loc[(25 <= df[temperature_name]) & (df[temperature_name] <= 28) & (45 <= df[humidity_name]) & (
-            df[humidity_name] <= 60), 'is_comfortable'] = 1
+    df.loc[(25 <= df[temperature_name]) & (df[temperature_name] <= 28) & (
+        45 <= df[humidity_name]) & (df[humidity_name] <= 60), 'is_comfortable'] = 1
     return df
 
 
