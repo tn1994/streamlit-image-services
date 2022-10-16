@@ -40,15 +40,20 @@ class Sidebar:  # todo: refactor
     def image_service(self):
         st.title('Image service')
 
-        tab1, tab2, tab3 = st.tabs(['Upload Image Service', 'Search Image Service', 'Download as Zip'])
+        tab1, tab2, tab3 = st.tabs(
+            ['Upload Image Service', 'Search Image Service', 'Download as Zip'])
 
         with tab1:
-            uploaded_file = st.file_uploader('Choose a image file.', type=['jpeg', 'png'])
+            uploaded_file = st.file_uploader(
+                'Choose a image file.', type=['jpeg', 'png'])
             try:
                 if uploaded_file is not None:
                     image_service = ImageService()
                     image_service.set_image(fp=uploaded_file)
-                    st.image(image_service.image, caption='upload image', use_column_width=True)
+                    st.image(
+                        image_service.image,
+                        caption='upload image',
+                        use_column_width=True)
             except Exception as e:
                 logger.error(f'ERROR: {uploaded_file=}')
 
@@ -73,12 +78,14 @@ class Sidebar:  # todo: refactor
 
         with tab3:
             try:
-                download_image_service = DownloadImageService(cx=st.secrets['google_custom_search_api']['cx'],
-                                                              key=st.secrets['google_custom_search_api']['key'])
+                download_image_service = DownloadImageService(
+                    cx=st.secrets['google_custom_search_api']['cx'],
+                    key=st.secrets['google_custom_search_api']['key'])
 
                 with st.form(key='download_image_service_form'):
 
-                    select_query: str = st.selectbox(label='Select Query', options=download_image_service.query_list)
+                    select_query: str = st.selectbox(
+                        label='Select Query', options=download_image_service.query_list)
                     query: str = st.text_input(label='Other Query')
                     num_images: int = st.slider('Num of Images', 0, 100, 25)
                     submitted = st.form_submit_button(label='Setup Download')
@@ -86,16 +93,18 @@ class Sidebar:  # todo: refactor
                 if select_query is not None and num_images is not None and submitted:
                     with st.spinner('Wait for it...'):
                         with io.BytesIO() as buffer:  # ref: https://discuss.streamlit.io/t/download-zipped-json-file/22512/5
-                            _query: str = query if 0 != len(query) else select_query
-                            zipfile = download_image_service.download_images_as_zipfile(buffer=buffer, query=_query,
-                                                                                        num=num_images)
+                            _query: str = query if 0 != len(
+                                query) else select_query
+                            zipfile = download_image_service.download_images_as_zipfile(
+                                buffer=buffer, query=_query, num=num_images)
                             buffer.seek(0)
 
                             if zipfile is not None:
-                                st.download_button(label='Download Images as ZipFile',
-                                                   data=zipfile,
-                                                   file_name='images.zip',
-                                                   mime='application/zip')
+                                st.download_button(
+                                    label='Download Images as ZipFile',
+                                    data=zipfile,
+                                    file_name='images.zip',
+                                    mime='application/zip')
             except Exception as e:
                 logger.error(e)
                 traceback.print_exc()
@@ -120,10 +129,12 @@ class Sidebar:  # todo: refactor
         st.title('Notion Service')
 
         try:
-            notion_service = NotionService(access_token=st.secrets['notion_service']['access_token'])
+            notion_service = NotionService(
+                access_token=st.secrets['notion_service']['access_token'])
             if st.button('GET'):
                 with st.spinner('Wait for it...'):
-                    res = notion_service.show_database(database_id=st.secrets['notion_service']['database_id'])
+                    res = notion_service.show_database(
+                        database_id=st.secrets['notion_service']['database_id'])
                 st.table(res)
                 st.json(notion_service.result_dict)
         except Exception as e:
@@ -141,12 +152,17 @@ class Sidebar:  # todo: refactor
 
         c1, c2, c3 = st.columns(3)
         with c1:
-            st.metric(label='Python Version', value=version_service.get_python_version())
+            st.metric(label='Python Version',
+                      value=version_service.get_python_version())
         with c2:
-            st.metric(label='Pip Version', value=version_service.get_pip_version())
+            st.metric(
+                label='Pip Version',
+                value=version_service.get_pip_version())
         with c3:
-            st.metric(label='Streamlit Version',
-                      value=version_service.get_library_version(library_name='streamlit'))
+            st.metric(
+                label='Streamlit Version',
+                value=version_service.get_library_version(
+                    library_name='streamlit'))
         st.download_button(label='Download requirements.txt',
                            data=version_service.get_pip_list(format='freeze'),
                            file_name='requirements.txt',

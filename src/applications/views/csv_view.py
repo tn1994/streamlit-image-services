@@ -22,13 +22,15 @@ class CsvView(BaseView):
 
     def viewer(self):
         with st.expander(label='Viewew', expanded=True):
-            uploaded_files = st.file_uploader("Or Your CSV file", type='csv', accept_multiple_files=False)
+            uploaded_files = st.file_uploader(
+                "Or Your CSV file", type='csv', accept_multiple_files=False)
 
             try:
                 if uploaded_files is not None:
                     with st.spinner('Wait for it...'):
                         if uploaded_files is not None:
-                            csv_service = CsvService(filepath_or_buffer=uploaded_files)
+                            csv_service = CsvService(
+                                filepath_or_buffer=uploaded_files)
                         else:
                             raise ValueError
                     with st.expander(label='Show Data'):
@@ -41,7 +43,8 @@ class CsvView(BaseView):
 
     def concat(self):
         with st.expander(label='Concut', expanded=True):
-            uploaded_files = st.file_uploader("Or Your CSV file", type='csv', accept_multiple_files=True)
+            uploaded_files = st.file_uploader(
+                "Or Your CSV file", type='csv', accept_multiple_files=True)
 
             try:
                 if uploaded_files:
@@ -49,7 +52,9 @@ class CsvView(BaseView):
                         logger.info(uploaded_files)
                         df_in_list = []
                         for num in range(len(uploaded_files)):
-                            df_in_list.append(CsvService(filepath_or_buffer=uploaded_files[num]).df)
+                            df_in_list.append(
+                                CsvService(
+                                    filepath_or_buffer=uploaded_files[num]).df)
                         data = concat_df(df_in_list=df_in_list)
                         st.table(data)
                     self.download_df_as_csv(df=data)

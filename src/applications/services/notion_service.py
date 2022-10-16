@@ -39,7 +39,8 @@ class NotionService:
 
                 for item in result:
                     tmp_dict = {}
-                    for key in NotionModel.column_name_list:  # todo: change to item['properties'].keys() ?
+                    # todo: change to item['properties'].keys() ?
+                    for key in NotionModel.column_name_list:
                         attribute = item['properties'][key]
                         match attribute['type']:
                             case 'number':

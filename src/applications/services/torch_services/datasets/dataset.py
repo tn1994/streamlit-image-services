@@ -26,11 +26,9 @@ class MyDataset(Dataset):
         'https://i.pinimg.com/550x/a0/a9/7b/a0a97b1c9e5ecdb8ba6b6c3fd076f0da.jpg',
         'https://i.pinimg.com/550x/33/0b/fe/330bfebf47fa99c0896e4996338b4f7e.jpg',
         'https://i.pinimg.com/550x/e1/20/ed/e120ed80ec5a01d6a9857accec731482.jpg',
-
         'https://i.pinimg.com/originals/40/bb/ad/40bbadb13def4ca573a5b017553e1ce0.png',
         'https://i.pinimg.com/originals/5e/82/92/5e8292682b884bae1fc9671d8444261d.jpg',
-        'https://i.pinimg.com/originals/6f/b0/9e/6fb09e85d0afe9569795edb10298553b.jpg'
-    ]
+        'https://i.pinimg.com/originals/6f/b0/9e/6fb09e85d0afe9569795edb10298553b.jpg']
 
     transformer = None
     df: pd.DataFrame = None
@@ -70,7 +68,8 @@ class MyDataset(Dataset):
                 transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ])
             # input_tensor = preprocess(input_image)
-            # image = input_tensor.unsqueeze(0) # create a mini-batch as expected by the model
+            # image = input_tensor.unsqueeze(0) # create a mini-batch as
+            # expected by the model
             image = preprocess(image)
 
         # 差分画像の正解値取得
@@ -83,7 +82,8 @@ class MyDataset(Dataset):
             'image': image
         }
         if self.df is not None:
-            class_index = self.df['label'].unique().tolist().index(self.filename_list[index])
+            class_index = self.df['label'].unique(
+            ).tolist().index(self.filename_list[index])
             result_dict['image_class_idx'] = class_index
 
         return result_dict
@@ -134,7 +134,8 @@ def setup_data(df: pd.DataFrame, is_face_recognition: bool, timestamp: str):
                 else:
                     dir_name: str = f'{timestamp}/original/{name}'
                     os.makedirs(dir_name, exist_ok=True)
-                    get_image_for_save(image_link=path, dir_name=f'./{dir_name}')
+                    get_image_for_save(
+                        image_link=path, dir_name=f'./{dir_name}')
     except Exception as e:
         raise e
 
@@ -177,7 +178,8 @@ def get_dataset(data_folder='./face_recognition/'):
 
     phase = 'train'
 
-    dataset = torchvision.datasets.ImageFolder(root=data_folder, transform=transform_dict[phase])
+    dataset = torchvision.datasets.ImageFolder(
+        root=data_folder, transform=transform_dict[phase])
     return dataset
 
 
@@ -189,7 +191,8 @@ def split_train_valid_dataset(dataset):
     val_size = len(dataset) - train_size
     data_size = {"train": train_size, "val": val_size}
     #          =>{"train": 112,       "val": 28}
-    train_dataset, valid_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
+    train_dataset, valid_dataset = torch.utils.data.random_split(
+        dataset, [train_size, val_size])
     return train_dataset, valid_dataset
 
 
