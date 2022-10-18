@@ -1,6 +1,7 @@
 import logging
 from functools import cache
 from typing import Final
+from contextlib import suppress
 
 from py3pin.Pinterest import Pinterest
 
@@ -31,9 +32,12 @@ class PinterestService:
             if email is not None and password is not None:
                 self.pinterest = Pinterest(email=email, password=password)
             else:
-                self.pinterest = Pinterest()
+                self.__setup()
         except Exception as e:
-            self.pinterest = Pinterest()
+            self.__setup()
+
+    def __setup(self):
+        self.pinterest = Pinterest()
 
     def __reset_list(self):
         if 0 != len(self.image_info_list):
@@ -53,9 +57,11 @@ class PinterestService:
         :return:
         """
         try:
+            self.__setup()  # todo: other handling?
             self.__reset_list()
             search_batch = self._search(
                 scope=scope, query=query, page_size=num_pins)
+
             """
             results = []
             while len(search_batch) > 0 and len(results) < num_pins:
@@ -78,11 +84,13 @@ class PinterestService:
 
     def _search(self, query: str, page_size: int, scope: str = 'boards'):
         try:
-            return self.pinterest.search(scope=scope, query=query, page_size=page_size)
+            return self.pinterest.search(
+                scope=scope, query=query, page_size=page_size)
         except ConnectionError as e:
             logger.error(e)
             self.pinterest = Pinterest()
-            return self.pinterest.search(scope=scope, query=query, page_size=page_size)
+            return self.pinterest.search(
+                scope=scope, query=query, page_size=page_size)
 
     def get_pin_count(self, board_id: str | int):
         _idx = self.board_id_list.index(str(board_id))
@@ -106,6 +114,7 @@ class PinterestService:
         :param page_size:
         :return:
         """
+        self.__setup()  # todo: other handling?
         self.__reset_list()
         self.board_id = board_id
 
@@ -121,11 +130,9 @@ class PinterestService:
             result = self.pinterest.board_feed(
                 board_id=board_id, page_size=page_size)
         for item in result:
-            try:
+            with suppress(BaseException):
                 self.image_info_list.append(item['images']['orig']['url'])
                 self.pin_id_list.append((item['id']))
-            except BaseException:
-                pass
         return self.image_info_list
 
     def follow_board(self, board_id=''):
