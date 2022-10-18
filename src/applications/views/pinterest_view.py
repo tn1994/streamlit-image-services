@@ -79,7 +79,8 @@ class PinterestView(PinterestBaseView):
                     """
 
         with st.spinner('Wait for it...'):
-            self.pinterest_service.search(query=query, num_pins=100, scope='boards')
+            self.pinterest_service.search(
+                query=query, num_pins=100, scope='boards')
 
     def show_board_images(self):
         if 0 != len(self.pinterest_service.board_id_list):
