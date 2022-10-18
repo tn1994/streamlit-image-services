@@ -67,6 +67,7 @@ class PinterestView(PinterestBaseView):
             case _:
                 raise
 
+        """
         with st.sidebar.form(key=self.key_1):
             num_boards: int = st.slider('Num of Boards', 1, 200, 100)
             submitted = st.form_submit_button(label='Search Boards')
@@ -75,6 +76,10 @@ class PinterestView(PinterestBaseView):
             with st.spinner('Wait for it...'):
                 self.pinterest_service.search(
                     query=query, num_pins=num_boards, scope='boards')
+                    """
+
+        with st.spinner('Wait for it...'):
+            self.pinterest_service.search(query=query, num_pins=100, scope='boards')
 
     def show_board_images(self):
         if 0 != len(self.pinterest_service.board_id_list):

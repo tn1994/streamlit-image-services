@@ -64,8 +64,6 @@ class PinterestService:
             self.image_info_list: list = [item['image_cover_hd_url'] for item in results]
             """
 
-            logger.info(f'{search_batch=}')
-
             for item in search_batch:
                 self.image_info_list.append(item['image_cover_hd_url'])
                 # self.pin_id_list.append(item['pin_id'])
@@ -79,10 +77,13 @@ class PinterestService:
             raise e
 
     def _search(self, query: str, page_size: int, scope: str = 'boards'):
-        return self.pinterest.search(
-            scope=scope, query=query, page_size=page_size)
+        try:
+            return self.pinterest.search(scope=scope, query=query, page_size=page_size)
+        except ConnectionError as e:
+            logger.error(e)
+            self.pinterest = Pinterest()
+            return self.pinterest.search(scope=scope, query=query, page_size=page_size)
 
-    @cache
     def get_pin_count(self, board_id: str | int):
         _idx = self.board_id_list.index(str(board_id))
         return self.board_pin_count_list[_idx]
@@ -98,7 +99,6 @@ class PinterestService:
         board_id = pin_info["board"]["id"]
         return board_id
 
-    @cache
     def get_board_feed_orig_images(self, board_id: str, page_size: int = 100):
         """
         ref: https://github.com/bstoilov/py3-pinterest#list-all-pins-in-board
@@ -120,7 +120,6 @@ class PinterestService:
         else:
             result = self.pinterest.board_feed(
                 board_id=board_id, page_size=page_size)
-        logger.info(f'{result=}')
         for item in result:
             try:
                 self.image_info_list.append(item['images']['orig']['url'])
